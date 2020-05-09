@@ -1,5 +1,30 @@
 class Company {
 
+  static async getAll({ search = "", min_employees = 0, max_employees = Number.POSITIVE_INFINITY }) {
+    const searchTerm = `%${search}`;
+
+    if (min_employees > max_employees) {
+      throw new ExpressError("Max employees must be greater than min employees", 400);
+    };
+
+    const results = await db.query(
+      `SELECT 
+        handle,
+        name,
+        num_employees,
+        description,
+        logo_url
+        FROM companies
+        WHERE 
+        name ILIKE $1,
+        num_employees <= $2,
+        num_employees >= $3`,
+      [searchTerm, min_employees, max_employees]
+    );
+
+    return results;
+  };
+
   static async create({ handle, name, num_employees, description, logo_url }) {
     const result = await db.query(
       `INSERT INTO companies (
@@ -16,39 +41,46 @@ class Company {
 
   static async get(handle) {
     const result = await db.query(
-      `SELECT FROM companies (
+      `SELECT 
         handle, 
         name,
         num_employees,
         description,
         logo_url
-        WHERE handle = $1)`,
+        FROM companies 
+        WHERE handle = $1`,
       [handle]
     );
-    
-    if (result.row.length === 0){
+
+    if (result.row.length === 0) {
       throw new ExpressError("Company Handle Not Found", 404);
     }
 
-    return result;
+    return result.rows[0];
   };
 
-  static async update(){
+  static async update(handle, data) {
+    const { query, values } = sqlForPartialUpdate('companies', data, "handle", handle);
+    const result = await db.query(query, values);
 
+    if (result.rows.length === 0) {
+      throw new ExpressError("Handle does not match any companies", 404);
+    }
+    return result.rows[0];
   };
 
-  static async delete(handle){
+  static async delete(handle) {
     const result = await db.query(
-      `DELETE FROM companies (
-        WHERE handle = $1)`,
-        [handle]
+      `DELETE FROM companies 
+        WHERE handle = $1`,
+      [handle]
     );
 
-    if (result.row.length === 0){
+    if (result.row.length === 0) {
       throw new ExpressError("Company Handle Not Found", 404);
     }
 
-    return result;
+    return result.rows[0];
   };
 
 };

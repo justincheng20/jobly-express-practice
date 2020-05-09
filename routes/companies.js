@@ -4,7 +4,7 @@ const router = new Router();
 
 router.get("/", async function (req, res, next){
   try {
-    let companies = await Company.get();
+    let companies = await Company.getAll();
     return res.json({companies});
   } catch (err){
     return next(err);
