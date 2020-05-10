@@ -1,10 +1,15 @@
-const Router = require("express").Router;
-
-const router = new Router();
+const express = require("express");
+const router = express.Router();
+const Company = require("../models/company");
+// const ExpressError = require("../helpers/expressError");
+// const jsonschema = require("jsonschema");
+// const companySchema = require("../schemas/companySchema");
+// const companyUpdateSchema = require("../schemas/companyUpdateSchema");
 
 router.get("/", async function (req, res, next){
   try {
-    let companies = await Company.getAll();
+    console.log("query:",req.query)
+    let companies = await Company.getAll(req.query);
     return res.json({companies});
   } catch (err){
     return next(err);
@@ -46,4 +51,6 @@ router.delete("/:handle", async function (req, res, next){
     return next(err);
   }
 });
+
+module.exports = router;
 

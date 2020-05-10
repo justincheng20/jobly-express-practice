@@ -1,8 +1,10 @@
+const db = require("../db");
+
 class Company {
 
-  static async getAll({ search = "", min_employees = 0, max_employees = Number.POSITIVE_INFINITY }) {
-    const searchTerm = `%${search}`;
-
+  static async getAll({ search = "", min_employees = 0, max_employees = 10000 }) {
+    const searchTerm = `%${search}%`;
+    console.log(searchTerm);
     if (min_employees > max_employees) {
       throw new ExpressError("Max employees must be greater than min employees", 400);
     };
@@ -16,13 +18,13 @@ class Company {
         logo_url
         FROM companies
         WHERE 
-        name ILIKE $1,
-        num_employees <= $2,
+        name ILIKE $1 AND
+        num_employees <= $2 AND
         num_employees >= $3`,
       [searchTerm, min_employees, max_employees]
     );
 
-    return results;
+    return results.rows;
   };
 
   static async create({ handle, name, num_employees, description, logo_url }) {
@@ -84,3 +86,5 @@ class Company {
   };
 
 };
+
+module.exports = Company;
